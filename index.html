@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Ever-Wind</title>
+<meta name="description" content="Ever-Wind 的个人主页" />
+<meta name="theme-color" content="#070a13" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Ever-Wind" />
+<meta property="og:description" content="Ever-Wind 的个人主页" />
+<meta property="og:url" content="https://everwind.top/" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%236ea8fe'/%3E%3Cstop offset='1' stop-color='%23b18cff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='24' fill='%23070a13'/%3E%3Ctext x='50' y='71' font-family='Segoe UI,Arial,sans-serif' font-size='56' font-weight='700' fill='url(%23g)' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E" />
+<script>
+  /* 先定主题再渲染，避免打开瞬间白屏闪一下 */
+  (function () {
+    try {
+      var saved = localStorage.getItem("theme");
+      var light = window.matchMedia("(prefers-color-scheme: light)").matches;
+      document.documentElement.dataset.theme = saved || (light ? "light" : "dark");
+    } catch (e) {
+      document.documentElement.dataset.theme = "dark";
+    }
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #070a13;
+    --bg-2: #0b1122;
+    --card: rgba(255, 255, 255, 0.045);
+    --card-2: rgba(255, 255, 255, 0.015);
+    --border: rgba(255, 255, 255, 0.09);
+    --text: #e9edf9;
+    --muted: #96a1bf;
+    --accent: #6ea8fe;
+    --accent-2: #b18cff;
+    --avatar-bg: linear-gradient(160deg, #111a33, #0a0f1e);
+    --shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.85);
+    --link-bg: rgba(255, 255, 255, 0.03);
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
+    --bg: #f4f6fb;
+    --bg-2: #e9eef9;
+    --card: rgba(255, 255, 255, 0.8);
+    --card-2: rgba(255, 255, 255, 0.5);
+    --border: rgba(15, 23, 42, 0.1);
+    --text: #0f172a;
+    --muted: #5a6478;
+    --accent: #2f6fed;
+    --accent-2: #7c4dff;
+    --avatar-bg: linear-gradient(160deg, #ffffff, #eef2fb);
+    --shadow: 0 30px 80px -40px rgba(30, 50, 90, 0.35);
+    --link-bg: rgba(255, 255, 255, 0.65);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: clamp(20px, 5vw, 56px) 16px clamp(20px, 5vw, 56px);
+    overflow-x: hidden;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(1100px 620px at 12% -10%, rgba(110, 168, 254, 0.16), transparent 60%),
+      radial-gradient(900px 540px at 92% 6%, rgba(177, 140, 255, 0.14), transparent 62%),
+      radial-gradient(760px 520px at 50% 118%, rgba(110, 168, 254, 0.1), transparent 60%),
+      linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+  }
+  ::selection { background: rgba(110, 168, 254, 0.32); }
+
+  .glow {
+    position: fixed;
+    z-index: 0;
+    border-radius: 50%;
+    filter: blur(90px);
+    opacity: 0.45;
+    pointer-events: none;
+  }
+  .glow-a {
+    width: 520px; height: 520px; left: -170px; top: -190px;
+    background: radial-gradient(circle, rgba(110, 168, 254, 0.55), transparent 70%);
+    animation: drift 18s ease-in-out infinite;
+  }
+  .glow-b {
+    width: 460px; height: 460px; right: -150px; bottom: -170px;
+    background: radial-gradient(circle, rgba(177, 140, 255, 0.5), transparent 70%);
+    animation: drift 22s ease-in-out infinite reverse;
+  }
+  @keyframes drift { 50% { transform: translate3d(28px, 24px, 0) scale(1.08); } }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    width: min(640px, 100%);
+    padding: clamp(28px, 5vw, 48px) clamp(22px, 5vw, 44px) clamp(22px, 4vw, 32px);
+    border: 1px solid var(--border);
+    border-radius: 26px;
+    background: linear-gradient(180deg, var(--card), var(--card-2));
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: var(--shadow);
+    text-align: center;
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 1px;
+    border-radius: 26px 26px 0 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    opacity: 0.75;
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .avatar {
+    width: 96px; height: 96px;
+    margin: 0 auto 22px;
+    padding: 2px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: conic-gradient(from 200deg, var(--accent), var(--accent-2), var(--accent));
+    box-shadow: 0 0 0 6px rgba(110, 168, 254, 0.08);
+  }
+  .avatar span {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--avatar-bg);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.06em;
+  }
+
+  .name {
+    margin: 0 0 12px;
+    font-size: clamp(30px, 6.4vw, 42px);
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(115deg, var(--text) 12%, var(--accent) 56%, var(--accent-2) 92%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .tagline {
+    margin: 0 auto;
+    max-width: 44ch;
+    font-size: clamp(15px, 2.4vw, 17px);
+    line-height: 1.75;
+    color: var(--muted);
+  }
+
+  .rule {
+    width: 64px; height: 1px;
+    margin: 28px auto;
+    background: linear-gradient(90deg, transparent, rgba(110, 168, 254, 0.55), transparent);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+  }
+  .link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--link-bg);
+    color: var(--text);
+    font-size: 14.5px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  .link svg { width: 18px; height: 18px; fill: currentColor; opacity: 0.9; }
+  .link:hover {
+    transform: translateY(-2px);
+    border-color: rgba(110, 168, 254, 0.55);
+    box-shadow: 0 12px 26px -14px rgba(110, 168, 254, 0.8);
+  }
+  .link:active { transform: translateY(0); }
+
+  .card-foot {
+    margin: 28px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 12.5px;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+  }
+  .dot { width: 3px; height: 3px; border-radius: 50%; background: currentColor; opacity: 0.5; }
+
+  .hosted {
+    position: relative;
+    z-index: 1;
+    margin: 0;
+    font-size: 11.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.65;
+  }
+
+  .theme-toggle {
+    position: fixed;
+    top: 18px; right: 18px;
+    z-index: 3;
+    width: 42px; height: 42px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    background: var(--card);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    color: var(--text);
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .theme-toggle:hover { transform: scale(1.06); border-color: rgba(110, 168, 254, 0.5); }
+  .theme-toggle svg { width: 18px; height: 18px; fill: currentColor; }
+  html[data-theme="dark"] .icon-moon { display: none; }
+  html[data-theme="light"] .icon-sun { display: none; }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  @media (max-width: 420px) {
+    .avatar { width: 84px; height: 84px; margin-bottom: 18px; }
+    .avatar span { font-size: 22px; }
+    .link { padding: 10px 15px; font-size: 14px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .glow { animation: none; }
+    * { transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="glow glow-a" aria-hidden="true"></div>
+<div class="glow glow-b" aria-hidden="true"></div>
+
+<button class="theme-toggle" id="themeToggle" type="button" aria-label="切换深色 / 浅色">
+  <svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM11 1h2v3h-2V1zm0 19h2v3h-2v-3zM1 11h3v2H1v-2zm19 0h3v2h-3v-2zM3.5 4.9l1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1zm13.5 13.5l1.4-1.4 2.1 2.1-1.4 1.4-2.1-2.1zM17 3.5l1.4 1.4-2.1 2.1-1.4-1.4L17 3.5zM3.5 17l2.1-2.1 1.4 1.4-2.1 2.1L3.5 17z"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+</button>
+
+<main class="card">
+  <!-- ============================================================
+       这张页面你要改的只有三处，都标记在下面（❶ ❷ ❸）。
+       改完保存，把文件重新上传到 GitHub 就会更新。
+       ============================================================ -->
+
+  <div class="avatar" aria-hidden="true"><span>EW</span></div>
+
+  <!-- ❶ 名字 -->
+  <h1 class="name">Ever-Wind</h1>
+
+  <!-- ❷ 一句话简介 -->
+  <p class="tagline">hello everyone</p>
+
+  <div class="rule" aria-hidden="true"></div>
+
+  <!-- ❸ 链接：复制一整个 <a>…</a> 段，改成你要的平台就能多一个 -->
+  <nav class="links" aria-label="联系方式">
+    <a class="link" href="https://github.com/Ever-Wind" target="_blank" rel="noopener noreferrer">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.1c-3.2.7-3.88-1.37-3.88-1.37-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.69 5.41-5.25 5.69.41.36.78 1.06.78 2.14v3.17c0 .3.21.67.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+      <span>GitHub</span>
+    </a>
+
+    <!-- 想加邮箱？把下面这段前后的注释符号删掉（开头这行的 < 感叹号 横线 横线 和结尾的 横线 横线 大于号），再把地址改成你的
+    <a class="link" href="mailto:you@example.com">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 5.5A2.5 2.5 0 0 1 4.5 3h15A2.5 2.5 0 0 1 22 5.5v13a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5v-13zm2.2-.5 7.8 6.1L19.8 5H4.2zM20 7.2l-7.4 5.8a1 1 0 0 1-1.2 0L4 7.2v11.3c0 .3.2.5.5.5h15c.3 0 .5-.2.5-.5V7.2z"/></svg>
+      <span>邮箱</span>
+    </a>
+    -->
+  </nav>
+
+  <footer class="card-foot">
+    <span>everwind.top</span>
+    <span class="dot" aria-hidden="true"></span>
+    <span>&copy; <span id="year">2026</span></span>
+  </footer>
+</main>
+
+<p class="hosted">Hosted on GitHub Pages</p>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById("themeToggle");
+    var meta = document.querySelector('meta[name="theme-color"]');
+
+    if (btn) {
+      btn.addEventListener("click", function () {
+        var next = root.dataset.theme === "dark" ? "light" : "dark";
+        root.dataset.theme = next;
+        if (meta) meta.setAttribute("content", next === "dark" ? "#070a13" : "#f4f6fb");
+        try { localStorage.setItem("theme", next); } catch (e) {}
+      });
+    }
+
+    var year = document.getElementById("year");
+    if (year) year.textContent = String(new Date().getFullYear());
+  })();
+</script>
+</body>
+</html>
