@@ -1,0 +1,12 @@
+{
+  "name": "everwind-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "everwind.top —— 静态首页 + Vercel 函数后台",
+  "scripts": {
+    "hash-password": "node tools/hash-password.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

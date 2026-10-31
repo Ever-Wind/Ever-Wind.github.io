@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>后台 · Ever-Wind</title>
+<script>
+  (function () {
+    try {
+      var mode = localStorage.getItem("themeMode") || "auto";
+      var dark = mode === "dark" || (mode === "auto" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      document.documentElement.dataset.mode = mode;
+    } catch (e) {}
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f7f6f3;
+    --ink: #14161a;
+    --muted: #61656e;
+    --faint: #8b8f98;
+    --line: rgba(20, 22, 26, 0.12);
+    --line-soft: rgba(20, 22, 26, 0.07);
+    --accent: #1f6feb;
+    --chip: rgba(20, 22, 26, 0.045);
+    --field: rgba(20, 22, 26, 0.035);
+    --ok: #15803d;
+    --err: #b91c1c;
+  }
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #111318;
+    --ink: #dfe2e7;
+    --muted: #9ba2ad;
+    --faint: #737a86;
+    --line: rgba(223, 226, 231, 0.14);
+    --line-soft: rgba(223, 226, 231, 0.08);
+    --accent: #82aefc;
+    --chip: rgba(255, 255, 255, 0.05);
+    --field: rgba(255, 255, 255, 0.045);
+    --ok: #4ade80;
+    --err: #f87171;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+  }
+  a { color: var(--accent); }
+  [hidden] { display: none !important; }
+
+  /* ---------- 登录 ---------- */
+  .login-wrap {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+  }
+  .login-card {
+    width: min(372px, 100%);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--bg);
+    padding: 30px 28px 26px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.06);
+  }
+  .login-brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 22px;
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .login-brand b {
+    width: 30px; height: 30px;
+    display: grid; place-items: center;
+    border-radius: 9px;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+  .login-card h1 { margin: 0 0 4px; font-size: 21px; letter-spacing: -0.02em; }
+  .login-card .sub { margin: 0 0 22px; font-size: 13px; color: var(--muted); }
+
+  label {
+    display: block;
+    margin: 14px 0 6px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  input[type="text"], input[type="password"], input[type="date"], select, textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 14.5px;
+    color: var(--ink);
+    background: var(--field);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color 0.18s ease;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; line-height: 1.75; min-height: 130px; }
+
+  .btn {
+    font: inherit;
+    font-size: 13.5px;
+    padding: 9px 16px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease;
+  }
+  .btn:hover { background: var(--chip); }
+  .btn.primary {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+    font-weight: 600;
+  }
+  .btn.primary:hover { opacity: 0.88; }
+  .btn.danger { color: var(--err); }
+  .btn.block { width: 100%; margin-top: 20px; padding: 11px; }
+  .msg { min-height: 20px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+  .msg.err { color: var(--err); }
+  .msg.ok { color: var(--ok); }
+  .hint { margin-top: 14px; font-size: 12.5px; line-height: 1.7; color: var(--faint); }
+  .poem {
+    margin: 22px 0 0;
+    font-family: Georgia, "Songti SC", "SimSun", serif;
+    font-size: 14px;
+    letter-spacing: 0.12em;
+    color: var(--faint);
+  }
+
+  /* ---------- 后台布局 ---------- */
+  .app {
+    display: grid;
+    grid-template-columns: 208px minmax(0, 1fr);
+    min-height: 100dvh;
+  }
+  .side {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 22px 16px;
+    border-right: 1px solid var(--line);
+  }
+  .side-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 18px;
+    font-size: 12.5px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+  .side-back:hover { color: var(--ink); }
+  .side-title {
+    margin: 0 0 10px;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+  .nav-btn {
+    display: block;
+    width: 100%;
+    padding: 9px 11px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 13.5px;
+    text-align: left;
+    cursor: pointer;
+  }
+  .nav-btn:hover { background: var(--chip); color: var(--ink); }
+  .nav-btn[aria-current="true"] { background: var(--chip); color: var(--ink); font-weight: 600; }
+  .side-foot { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+
+  .main { padding: clamp(22px, 4vw, 44px) clamp(20px, 4vw, 48px) 80px; }
+  .main-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .main-head h2 { margin: 0; font-size: 19px; letter-spacing: -0.015em; }
+  .main-head p { margin: 0; font-size: 12.5px; color: var(--faint); }
+  .section { max-width: 720px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; align-items: center; }
+  .row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 180px; }
+
+  .post-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 14px 2px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .post-item .t { font-size: 15px; }
+  .post-item .m { margin-top: 4px; font-size: 12px; color: var(--faint); }
+  .post-item .ops { display: flex; gap: 8px; flex-shrink: 0; }
+  .badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 10.5px;
+    color: var(--muted);
+  }
+  .preview {
+    margin-top: 16px;
+    padding: 16px 18px;
+    border: 1px dashed var(--line);
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--muted);
+  }
+  .preview p { margin: 0 0 0.8em; }
+  .preview img { max-width: 100%; border-radius: 10px; }
+  .preview code { background: var(--chip); padding: 0.1em 0.35em; border-radius: 5px; }
+  .empty { padding: 20px 2px; color: var(--faint); }
+  .kv { margin: 0; }
+  .kv dt { margin-top: 16px; font-size: 12.5px; color: var(--faint); }
+  .kv dd { margin: 4px 0 0; font-size: 14px; line-height: 1.75; }
+  code.inline {
+    padding: 0.12em 0.4em;
+    border-radius: 5px;
+    background: var(--chip);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+  }
+  @media (max-width: 760px) {
+    .app { grid-template-columns: 1fr; }
+    .side {
+      position: static;
+      height: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      padding: 14px 16px;
+    }
+    .side-back { margin: 0 8px 0 0; }
+    .side-title, .side-foot { display: none; }
+    .nav-btn { width: auto; padding: 7px 12px; border: 1px solid var(--line); border-radius: 999px; font-size: 12.5px; }
+    .main { padding: 20px 16px 64px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== 登录 ===== -->
+<div class="login-wrap" id="loginView">
+  <form class="login-card" id="loginForm" autocomplete="on">
+    <div class="login-brand"><b>EW</b> Ever-Wind</div>
+    <h1>后台登录</h1>
+    <p class="sub">只有站长本人能进来。</p>
+
+    <label for="username">账号</label>
+    <input id="username" type="text" name="username" autocomplete="username" placeholder="admin" required />
+
+    <label for="password">密码</label>
+    <input id="password" type="password" name="password" autocomplete="current-password" placeholder="输入密码" required />
+
+    <button class="btn primary block" type="submit" id="loginBtn">进入</button>
+    <div class="msg" id="loginMsg"></div>
+    <p class="poem">此间无客，风自来去。</p>
+    <div class="hint"><a href="index.html">← 返回首页</a></div>
+  </form>
+</div>
+
+<!-- ===== 已登录 ===== -->
+<div class="app" id="appView" hidden>
+  <aside class="side">
+    <a class="side-back" href="index.html">← 返回首页</a>
+    <p class="side-title">管理</p>
+    <button class="nav-btn" type="button" data-tab="site" aria-current="true">首页文案</button>
+    <button class="nav-btn" type="button" data-tab="posts" aria-current="false">文章列表</button>
+    <button class="nav-btn" type="button" data-tab="edit" aria-current="false" id="tabEditBtn">写 / 改文章</button>
+    <p class="side-title" style="margin-top:16px">设置</p>
+    <button class="nav-btn" type="button" data-tab="account" aria-current="false">账号与密码</button>
+    <button class="nav-btn" type="button" data-tab="about" aria-current="false">这个后台</button>
+    <div class="side-foot">
+      <button class="nav-btn" type="button" id="logoutBtn">退出登录</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- 首页文案 -->
+    <section id="tab-site">
+      <div class="main-head"><h2>首页文案</h2><p>改完几秒内生效</p></div>
+      <div class="section">
+        <label for="siteName">名字</label>
+        <input id="siteName" type="text" maxlength="40" />
+
+        <label for="siteTagline">一句话简介（可以换行）</label>
+        <textarea id="siteTagline" rows="3" maxlength="200"></textarea>
+
+        <label for="siteNow">现在在干什么（首页那句小字）</label>
+        <input id="siteNow" type="text" maxlength="200" placeholder="在改这个站，等你的下一张截图。" />
+
+        <div class="actions">
+          <button class="btn primary" type="button" id="saveSiteBtn">保存文案</button>
+        </div>
+        <div class="msg" id="siteMsg"></div>
+      </div>
+    </section>
+
+    <!-- 文章列表 -->
+    <section id="tab-posts" hidden>
+      <div class="main-head"><h2>文章列表</h2><p>按日期倒序</p></div>
+      <div class="section">
+        <div class="actions" style="margin:0 0 6px">
+          <button class="btn primary" type="button" id="newPostBtn">写新文章</button>
+        </div>
+        <div id="postList"></div>
+        <div class="msg" id="listMsg"></div>
+      </div>
+    </section>
+
+    <!-- 编辑器 -->
+    <section id="tab-edit" hidden>
+      <div class="main-head"><h2>写 / 改文章</h2><p id="editHeadHint">Markdown：空行分段</p></div>
+      <div class="section">
+        <div class="row">
+          <div style="flex:2 1 260px">
+            <label for="postTitle">标题</label>
+            <input id="postTitle" type="text" maxlength="120" placeholder="例如：这个站是怎么来的" />
+          </div>
+          <div>
+            <label for="postDate">日期</label>
+            <input id="postDate" type="date" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="postSlug">网址代号（英文、数字、连字符）</label>
+            <input id="postSlug" type="text" maxlength="60" placeholder="first-post" />
+          </div>
+          <div>
+            <label for="postTags">分类（最多 4 个，用逗号隔开）</label>
+            <input id="postTags" type="text" maxlength="60" placeholder="建站, 随笔" />
+          </div>
+          <div>
+            <label for="postPrivate">谁能看</label>
+            <select id="postPrivate">
+              <option value="public">所有人</option>
+              <option value="private">只有我（登录后可见）</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="postBody">正文</label>
+        <textarea id="postBody" rows="16" placeholder="在这里写。空一行分段。# 开头是小标题，**两个星号**是加粗，- 开头是列表。"></textarea>
+
+        <div class="actions">
+          <button class="btn primary" type="button" id="savePostBtn">保存文章</button>
+          <button class="btn" type="button" id="previewBtn">预览</button>
+          <button class="btn" type="button" id="pickImageBtn">插入图片</button>
+          <button class="btn" type="button" id="cancelEditBtn">清空</button>
+          <input id="imageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden />
+        </div>
+        <div class="preview" id="previewBox" hidden></div>
+        <div class="msg" id="editMsg"></div>
+        <div class="hint">公开文章里引用的图片会自动变成公开可见；私密文章里的图片保持只有你能看。</div>
+      </div>
+    </section>
+
+    <!-- 账号与密码 -->
+    <section id="tab-account" hidden>
+      <div class="main-head"><h2>账号与密码</h2><p>都在 Vercel 里，不在网页上</p></div>
+      <div class="section">
+        <dl class="kv">
+          <dt>现在的账号</dt>
+          <dd id="accountName">admin</dd>
+
+          <dt>密码存在哪</dt>
+          <dd>不存在网页和数据库里，存在 Vercel 项目的环境变量 <code class="inline">ADMIN_PASSWORD_HASH</code> 里，是一串加密后的哈希。</dd>
+
+          <dt>怎么改密码</dt>
+          <dd>在本机跑 <code class="inline">node tools/hash-password.js 新密码</code>，把输出的那行哈希贴回 Vercel 的 <code class="inline">ADMIN_PASSWORD_HASH</code>，保存后重新部署一次。</dd>
+
+          <dt>怎么改账号</dt>
+          <dd>Vercel 环境变量 <code class="inline">ADMIN_USERNAME</code>，不填默认就是 <code class="inline">admin</code>。</dd>
+
+          <dt>忘记密码怎么办</dt>
+          <dd>走上面「怎么改密码」同样的步骤，直接换成新密码即可，不需要旧密码。</dd>
+
+          <dt>别人能猜到吗</dt>
+          <dd>登录接口对同一个 IP 十分钟只允许试 8 次，试错还会故意延迟 400 毫秒。</dd>
+        </dl>
+      </div>
+    </section>
+
+    <!-- 说明 -->
+    <section id="tab-about" hidden>
+      <div class="main-head"><h2>这个后台</h2><p>它怎么工作的</p></div>
+      <div class="section">
+        <dl class="kv">
+          <dt>内容存在哪</dt>
+          <dd>都存在你的私有仓库 <code class="inline">Private-admin</code> 里：文章是 <code class="inline">posts/</code> 下的 Markdown 文件，首页文案是 <code class="inline">site.json</code>，图片在 <code class="inline">images/</code>。</dd>
+
+          <dt>为什么别人看不到</dt>
+          <dd>网页本身不含任何文章内容。每次打开首页，是 Vercel 的函数去私有仓库读一遍，判断你登没登录，才决定发什么回来。</dd>
+
+          <dt>改完为什么能马上看到</dt>
+          <dd>保存时直接写进仓库，服务器缓存 15 秒，所以最多等十几秒。</dd>
+
+          <dt>删掉的文章能找回吗</dt>
+          <dd>能。仓库有历史记录，去 GitHub 的 Commits 里能找到那一版。</dd>
+        </dl>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="md.js"></script>
+<script>
+  (function () {
+    var state = { posts: [], site: null };
+
+    function el(id) { return document.getElementById(id); }
+    function setMsg(node, text, kind) {
+      node.textContent = text || "";
+      node.className = "msg" + (kind ? " " + kind : "");
+    }
+
+    function request(path, options) {
+      var opts = options || {};
+      opts.credentials = "same-origin";
+      if (opts.body && typeof opts.body !== "string") {
+        opts.headers = { "Content-Type": "application/json" };
+        opts.body = JSON.stringify(opts.body);
+      }
+      return fetch(path, opts).then(function (res) {
+        return res.text().then(function (text) {
+          var data = {};
+          try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { error: text }; }
+          if (!res.ok) throw new Error(data.error || "HTTP " + res.status);
+          return data;
+        });
+      });
+    }
+
+    function today() {
+      var d = new Date();
+      var m = String(d.getMonth() + 1).padStart(2, "0");
+      var day = String(d.getDate()).padStart(2, "0");
+      return d.getFullYear() + "-" + m + "-" + day;
+    }
+
+    // ---------- 登录 ----------
+    el("loginForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+      var msg = el("loginMsg");
+      var btn = el("loginBtn");
+      btn.disabled = true;
+      setMsg(msg, "验证中…");
+      request("/api/login", {
+        method: "POST",
+        body: { username: el("username").value, password: el("password").value }
+      })
+        .then(function () {
+          el("password").value = "";
+          setMsg(msg, "");
+          enterApp();
+        })
+        .catch(function (err) { setMsg(msg, err.message, "err"); })
+        .then(function () { btn.disabled = false; });
+    });
+
+    el("logoutBtn").addEventListener("click", function () {
+      request("/api/logout", { method: "POST" })
+        .then(function () { location.reload(); })
+        .catch(function () { location.reload(); });
+    });
+
+    function enterApp() {
+      el("loginView").hidden = true;
+      el("appView").hidden = false;
+      loadContent();
+    }
+
+    // ---------- 数据 ----------
+    function loadContent() {
+      return request("/api/content")
+        .then(function (data) {
+          state.site = data.site || {};
+          state.posts = data.posts || [];
+          fillSite();
+          renderList();
+        })
+        .catch(function (err) { setMsg(el("listMsg"), err.message, "err"); });
+    }
+
+    function fillSite() {
+      var site = state.site || {};
+      el("siteName").value = site.name || "";
+      el("siteTagline").value = site.tagline || "";
+      el("siteNow").value = site.now || "";
+    }
+
+    function renderList() {
+      var box = el("postList");
+      box.innerHTML = "";
+      if (!state.posts.length) {
+        var empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "还没有文章。点上面的「写新文章」。";
+        box.appendChild(empty);
+        return;
+      }
+      state.posts.forEach(function (post) {
+        var item = document.createElement("div");
+        item.className = "post-item";
+
+        var left = document.createElement("div");
+        var title = document.createElement("div");
+        title.className = "t";
+        title.textContent = post.title;
+        if (post.private) {
+          var badge = document.createElement("span");
+          badge.className = "badge";
+          badge.textContent = "私密";
+          title.appendChild(badge);
+        }
+        left.appendChild(title);
+
+        var meta = document.createElement("div");
+        meta.className = "m";
+        var tags = Array.isArray(post.tags) && post.tags.length ? " · " + post.tags.join(" / ") : "";
+        meta.textContent = (post.date || "无日期") + " · " + post.slug + tags;
+        left.appendChild(meta);
+
+        var ops = document.createElement("div");
+        ops.className = "ops";
+        var editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn";
+        editBtn.textContent = "编辑";
+        editBtn.addEventListener("click", function () { startEdit(post); });
+        var delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "btn danger";
+        delBtn.textContent = "删除";
+        delBtn.addEventListener("click", function () { removePost(post); });
+        ops.appendChild(editBtn);
+        ops.appendChild(delBtn);
+
+        item.appendChild(left);
+        item.appendChild(ops);
+        box.appendChild(item);
+      });
+    }
+
+    // ---------- 侧边导航 ----------
+    var navs = document.querySelectorAll(".nav-btn[data-tab]");
+    Array.prototype.forEach.call(navs, function (nav) {
+      nav.addEventListener("click", function () { showTab(nav.getAttribute("data-tab")); });
+    });
+
+    function showTab(name) {
+      Array.prototype.forEach.call(navs, function (nav) {
+        nav.setAttribute("aria-current", nav.getAttribute("data-tab") === name ? "true" : "false");
+      });
+      ["site", "posts", "edit", "account", "about"].forEach(function (key) {
+        el("tab-" + key).hidden = key !== name;
+      });
+    }
+
+    // ---------- 首页文案 ----------
+    el("saveSiteBtn").addEventListener("click", function () {
+      var msg = el("siteMsg");
+      setMsg(msg, "保存中…");
+      request("/api/post", {
+        method: "POST",
+        body: {
+          action: "site",
+          name: el("siteName").value,
+          tagline: el("siteTagline").value,
+          now: el("siteNow").value,
+          links: []
+        }
+      })
+        .then(function () {
+          setMsg(msg, "已保存。去首页刷新看看。", "ok");
+          loadContent();
+        })
+        .catch(function (err) { setMsg(msg, err.message, "err"); });
+    });
+
+    // ---------- 文章编辑 ----------
+    function startEdit(post) {
+      el("postTitle").value = post ? post.title : "";
+      el("postDate").value = (post && post.date) || today();
+      el("postSlug").value = post ? post.slug : "";
+      el("postTags").value = post && Array.isArray(post.tags) ? post.tags.join(", ") : "";
+      el("postPrivate").value = post && post.private ? "private" : "public";
+      el("postBody").value = post ? post.body : "";
+      el("previewBox").hidden = true;
+      el("editHeadHint").textContent = post ? "正在改：" + post.slug : "新文章";
+      setMsg(el("editMsg"), "");
+      showTab("edit");
+      el("postTitle").focus();
+    }
+
+    el("newPostBtn").addEventListener("click", function () { startEdit(null); });
+    el("tabEditBtn").addEventListener("click", function () { showTab("edit"); });
+    el("cancelEditBtn").addEventListener("click", function () {
+      startEdit(null);
+      setMsg(el("editMsg"), "已清空，可以写新的了。");
+    });
+
+    el("previewBtn").addEventListener("click", function () {
+      var box = el("previewBox");
+      box.innerHTML = window.renderMarkdown(el("postBody").value || "");
+      box.hidden = !el("postBody").value;
+    });
+
+    el("savePostBtn").addEventListener("click", function () {
+      var msg = el("editMsg");
+      var title = el("postTitle").value.trim();
+      var slug = el("postSlug").value.trim();
+      if (!title) { setMsg(msg, "先写个标题。", "err"); return; }
+      if (!slug) {
+        slug = "post-" + today().replace(/-/g, "");
+        el("postSlug").value = slug;
+      }
+      if (!/^[a-zA-Z0-9][a-zA-Z0-9-]{0,59}$/.test(slug)) {
+        setMsg(msg, "网址代号只能用英文字母、数字和连字符。", "err");
+        return;
+      }
+      var tags = el("postTags").value
+        .split(/[,，]/)
+        .map(function (t) { return t.trim(); })
+        .filter(Boolean)
+        .slice(0, 4);
+      setMsg(msg, "保存中…");
+      request("/api/post", {
+        method: "POST",
+        body: {
+          action: "save",
+          slug: slug,
+          title: title,
+          date: el("postDate").value || today(),
+          tags: tags,
+          isPrivate: el("postPrivate").value === "private",
+          body: el("postBody").value
+        }
+      })
+        .then(function () {
+          setMsg(msg, "已保存。首页刷新可见（最多等十几秒）。", "ok");
+          loadContent();
+          showTab("posts");
+        })
+        .catch(function (err) { setMsg(msg, err.message, "err"); });
+    });
+
+    function removePost(post) {
+      if (!window.confirm("确定删除《" + post.title + "》？删了只能去 GitHub 的历史里找回来。")) return;
+      request("/api/post", { method: "POST", body: { action: "delete", slug: post.slug } })
+        .then(function () {
+          setMsg(el("listMsg"), "已删除。", "ok");
+          loadContent();
+        })
+        .catch(function (err) { setMsg(el("listMsg"), err.message, "err"); });
+    }
+
+    // ---------- 传图片 ----------
+    el("pickImageBtn").addEventListener("click", function () { el("imageInput").click(); });
+
+    el("imageInput").addEventListener("change", function () {
+      var file = el("imageInput").files && el("imageInput").files[0];
+      if (!file) return;
+      var msg = el("editMsg");
+      if (file.size > 3 * 1024 * 1024) {
+        setMsg(msg, "图片超过 3MB，先压缩一下。", "err");
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function () {
+        setMsg(msg, "上传中…");
+        request("/api/upload", { method: "POST", body: { name: file.name, dataUrl: reader.result } })
+          .then(function (data) {
+            var area = el("postBody");
+            var snippet = "![" + (file.name.replace(/\.[^.]+$/, "") || "图片") + "](" + data.url + ")";
+            var start = area.selectionStart || area.value.length;
+            var end = area.selectionEnd || area.value.length;
+            area.value = area.value.slice(0, start) + snippet + area.value.slice(end);
+            area.focus();
+            area.selectionStart = area.selectionEnd = start + snippet.length;
+            setMsg(msg, "图片插到正文里了。记得保存文章。", "ok");
+          })
+          .catch(function (err) { setMsg(msg, err.message, "err"); })
+          .then(function () { el("imageInput").value = ""; });
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // ---------- 启动 ----------
+    request("/api/session")
+      .then(function (data) {
+        if (data.authed) enterApp();
+      })
+      .catch(function () { /* 没登录就停在登录框 */ });
+  })();
+</script>
+</body>
+</html>
