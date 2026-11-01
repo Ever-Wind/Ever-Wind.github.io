@@ -27,7 +27,8 @@
 
     function flushPara() {
       if (para.length) {
-        html.push("<p>" + inline(para.join(" ")) + "</p>");
+        // 单行回车也算换行：每行单独渲染，用 <br> 连起来，只有空行才分段
+        html.push("<p>" + para.map(inline).join("<br>") + "</p>");
         para = [];
       }
     }

@@ -831,7 +831,12 @@
       })
       .then(function (data) {
         if (!data || data.error) throw new Error("no data");
-        if (!Array.isArray(data.posts) || !data.posts.length) data.posts = SAMPLE_POSTS;
+        // 仓库里已有的文章在前，自带的三篇补在后（slug 相同就不重复）
+        var list = Array.isArray(data.posts) ? data.posts.slice() : [];
+        var seen = {};
+        list.forEach(function (p) { if (p && p.slug) seen[p.slug] = true; });
+        SAMPLE_POSTS.forEach(function (p) { if (p && !seen[p.slug]) list.push(p); });
+        data.posts = list;
         apply(data);
       })
       .catch(function () {

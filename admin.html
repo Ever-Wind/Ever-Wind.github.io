@@ -249,6 +249,21 @@
   .preview p { margin: 0 0 0.8em; }
   .preview img { max-width: 100%; border-radius: 10px; }
   .preview code { background: var(--chip); padding: 0.1em 0.35em; border-radius: 5px; }
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .toolbar button {
+    min-width: 34px;
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+  .toolbar .toolbar-tip { font-size: 12px; color: var(--faint); margin-left: 2px; }
+  .hint.static { margin-top: 8px; }
   .empty { padding: 20px 2px; color: var(--faint); }
   .kv { margin: 0; }
   .kv dt { margin-top: 16px; font-size: 12.5px; color: var(--faint); }
@@ -385,7 +400,17 @@
         </div>
 
         <label for="postBody">正文</label>
-        <textarea id="postBody" rows="16" placeholder="在这里写。空一行分段。# 开头是小标题，**两个星号**是加粗，- 开头是列表。"></textarea>
+        <div class="toolbar" id="mdToolbar">
+          <button type="button" data-md="bold" title="加粗，也可按 Ctrl+B"><strong>B</strong></button>
+          <button type="button" data-md="italic" title="斜体，也可按 Ctrl+I"><em>I</em></button>
+          <button type="button" data-md="h2" title="小标题">标题</button>
+          <button type="button" data-md="quote" title="引用">引用</button>
+          <button type="button" data-md="list" title="列表">列表</button>
+          <button type="button" data-md="link" title="链接">链接</button>
+          <span class="toolbar-tip">选中文字再点按钮</span>
+        </div>
+        <textarea id="postBody" rows="16" placeholder="在这里写，回车就是换行。"></textarea>
+        <div class="hint static">回车直接换行，发布后也照样换行；空一行才分成两段。**两边加星号**是加粗，*一个星号*是斜体，&gt; 开头是引用，- 开头是列表，链接写成 [文字](地址)。写的过程中下面「预览」会跟着变。</div>
 
         <div class="actions">
           <button class="btn primary" type="button" id="savePostBtn">保存文章</button>
@@ -645,10 +670,64 @@
       setMsg(el("editMsg"), "已清空，可以写新的了。");
     });
 
+    function renderPreview() {
+      var box = el("previewBox");
+      var v = el("postBody").value;
+      box.innerHTML = window.renderMarkdown(v || "");
+      box.hidden = !v;
+    }
+
+    // 在选区两侧加 Markdown 记号；行首类（引用/列表）加在整行前面
+    function mdWrap(kind) {
+      var ta = el("postBody");
+      var v = ta.value;
+      var s = ta.selectionStart;
+      var e = ta.selectionEnd;
+      var picked = v.slice(s, e);
+      var before = "";
+      var after = "";
+      var atLineStart = false;
+      if (kind === "bold") { before = "**"; after = "**"; }
+      else if (kind === "italic") { before = "*"; after = "*"; }
+      else if (kind === "h2") { before = "## "; atLineStart = true; }
+      else if (kind === "quote") { before = "> "; atLineStart = true; }
+      else if (kind === "list") { before = "- "; atLineStart = true; }
+      else if (kind === "link") { before = "["; after = "](https://)"; }
+
+      if (atLineStart) {
+        var lineStart = v.lastIndexOf("\n", s - 1) + 1;
+        v = v.slice(0, lineStart) + before + v.slice(lineStart);
+        s += before.length;
+        e += before.length;
+      } else {
+        v = v.slice(0, s) + before + picked + after + v.slice(e);
+        e = s + before.length + picked.length + after.length;
+        s += before.length;
+      }
+      ta.value = v;
+      ta.focus();
+      ta.setSelectionRange(s, e);
+      ta.dispatchEvent(new Event("input"));
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll("#mdToolbar button"), function (btn) {
+      btn.addEventListener("click", function () { mdWrap(btn.getAttribute("data-md")); });
+    });
+
     el("previewBtn").addEventListener("click", function () {
       var box = el("previewBox");
-      box.innerHTML = window.renderMarkdown(el("postBody").value || "");
-      box.hidden = !el("postBody").value;
+      if (!box.hidden) { box.hidden = true; return; }
+      renderPreview();
+    });
+
+    el("postBody").addEventListener("input", function () {
+      if (!el("previewBox").hidden) renderPreview();
+    });
+
+    el("postBody").addEventListener("keydown", function (ev) {
+      if (!(ev.ctrlKey || ev.metaKey)) return;
+      if (ev.key === "b" || ev.key === "B") { ev.preventDefault(); mdWrap("bold"); }
+      else if (ev.key === "i" || ev.key === "I") { ev.preventDefault(); mdWrap("italic"); }
     });
 
     el("savePostBtn").addEventListener("click", function () {
